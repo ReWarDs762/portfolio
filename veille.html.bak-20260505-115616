@@ -1,0 +1,173 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <meta name="description" content="Veille technologique d'Enzo Lefebvre : IPv6 en France, transition réseau, ARCEP, opérateurs et infrastructure." />
+  <title>Veille - IPv6 en France · Enzo Lefebvre</title>
+  <link rel="stylesheet" href="./assets/premium.css" />
+  <script defer src="./assets/premium.js"></script>
+</head>
+<body>
+  <nav class="nav">
+    <div class="container nav-inner">
+      <a href="./index.html" class="nav-brand"><span class="nav-brand-mark">EL</span><span>Enzo Lefebvre</span></a>
+      <ul class="nav-links">
+        <li><a href="./index.html">Accueil</a></li>
+        <li><a href="./parcours.html">Parcours</a></li>
+        <li><a href="./projets.html">Projets</a></li>
+        <li><a href="./competences.html">Compétences</a></li>
+        <li><a href="./veille.html">Veille</a></li>
+        <li><a href="./documents.html">Documents</a></li>
+        <li><a href="./contact.html">Contact</a></li>
+      </ul>
+    </div>
+  </nav>
+
+  <main class="watch-page" data-watch-page>
+    <section class="container watch-hero">
+      <div>
+        <p class="watch-eyebrow">Veille technologique</p>
+        <h1>IPv6 en France</h1>
+        <p class="watch-lead">Suivi de la transition IPv6 : opérateurs, hébergeurs, baromètre ARCEP, IPv6-only et impacts pour l'administration réseau.</p>
+      </div>
+      <div class="watch-period"><span>Calendrier</span><strong>Nov. 2025 → Avr. 2026</strong></div>
+    </section>
+
+    <section class="container watch-topic-card">
+      <div class="watch-topic-icon">IPv6</div>
+      <div>
+        <p class="watch-topic-kicker">Sujet suivi</p>
+        <h2>Migration IPv6</h2>
+        <p>Cette veille montre comment IPv6 passe d'un sujet théorique à un enjeu concret d'administration : adressage, sécurité, compatibilité IPv4, supervision et hébergement.</p>
+        <div class="watch-tags"><span>Transition</span><span>Réseau IP</span><span>ARCEP</span><span>IPv6</span></div>
+      </div>
+    </section>
+<section class="container watch-toolbar" aria-label="Outils de tri de la veille">
+      <div class="watch-search">
+        <label for="watch-search-input">Rechercher</label>
+        <input id="watch-search-input" type="search" placeholder="Rechercher un article, une source, un tag..." data-watch-search>
+      </div>
+      <div class="watch-control">
+        <label for="watch-filter">Filtrer</label>
+        <select id="watch-filter" data-watch-filter>
+          <option value="all">Tous les sujets</option>
+          <option value="arcep">ARCEP / officiel</option>
+          <option value="operateur">Opérateurs</option>
+          <option value="technique">Technique</option>
+          <option value="ipv6-only">IPv6-only</option>
+          <option value="favoris">Favoris</option>
+        </select>
+      </div>
+      <div class="watch-control">
+        <label for="watch-sort">Trier</label>
+        <select id="watch-sort" data-watch-sort>
+          <option value="date-desc">Plus récent</option>
+          <option value="date-asc">Plus ancien</option>
+          <option value="source">Source A-Z</option>
+          <option value="favorites">Favoris d'abord</option>
+        </select>
+      </div>
+      <p class="watch-count"><strong data-watch-count>0</strong> article(s)</p>
+    </section>
+
+    <section class="container watch-list-section">
+      <div class="watch-section-heading">
+        <div><span></span><h2>Veille mensuelle</h2></div>
+        <button class="watch-reset" type="button" data-watch-reset>Réinitialiser</button>
+      </div>
+
+      <div class="watch-list" data-watch-list>
+<article class="watch-article" data-id="2026-05-05-test" data-date="2026-05-05" data-source="gdfg" data-tags="fdgdf" data-category="technique">
+  <aside><strong>Mai 2026</strong><span>gdfg</span></aside>
+  <div class="watch-article-body">
+    <button class="watch-favorite" type="button" data-favorite aria-label="Ajouter aux favoris">☆</button>
+    <h3>test</h3>
+    <p>gfdgdf</p>
+    <div class="watch-analysis"><strong>Mon analyse</strong><span>fgdg</span></div>
+    <div class="watch-card-footer"><div class="watch-tags"><span>fdgdf</span></div><a href="http://dfgdf" target="_blank" rel="noopener noreferrer">Lire la source →</a></div>
+  </div>
+</article>
+
+<article class="watch-article" data-id="ipv6-majority-2026" data-date="2026-04-28" data-source="Internet Society Pulse" data-tags="ipv6 international technique adoption" data-category="technique">
+          <aside><strong>Avril 2026</strong><span>Internet Society Pulse</span></aside>
+          <div class="watch-article-body">
+            <button class="watch-favorite" type="button" data-favorite aria-label="Ajouter aux favoris">☆</button>
+            <h3>18 ans plus tard, IPv6 devient majoritaire</h3>
+            <p>Le 28 mars 2026, l'accès via IPv6 natif dépasse pour la première fois 50 % mondialement sur les services Google. La France fait partie des pays leaders avec environ 73 % d'adoption.</p>
+            <div class="watch-analysis"><strong>Mon analyse</strong><span>Cette étape confirme la trajectoire prévue par l'ARCEP. Le point faible reste le retard des hébergeurs web.</span></div>
+            <div class="watch-card-footer"><div class="watch-tags"><span>IPv6</span><span>International</span><span>Adoption</span></div><a href="https://pulse.internetsociety.org/fr/blog/2026/04/18-years-later-ipv6-reaches-majority/" target="_blank" rel="noopener noreferrer">Lire la source →</a></div>
+          </div>
+        </article>
+
+        <article class="watch-article" data-id="ipv6-prod-2026" data-date="2026-03-12" data-source="SHPV" data-tags="ipv6 linux dual-stack technique securite" data-category="technique">
+          <aside><strong>Mars 2026</strong><span>SHPV</span></aside>
+          <div class="watch-article-body">
+            <button class="watch-favorite" type="button" data-favorite aria-label="Ajouter aux favoris">☆</button>
+            <h3>Déployer IPv6 en production en 2026 : guide complet pour administrateurs</h3>
+            <p>Guide pratique sur le dual-stack, la configuration Linux avec Netplan/sysctl, la sécurisation nftables et les pièges fréquents : routes, MTU, ICMPv6, pare-feu.</p>
+            <div class="watch-analysis"><strong>Mon analyse</strong><span>Très utile pour un profil SISR : les erreurs listées correspondent aux points à surveiller lors d'une migration réelle.</span></div>
+            <div class="watch-card-footer"><div class="watch-tags"><span>IPv6</span><span>Sécurité</span><span>Guide</span></div><a href="https://www.shpv.fr/blog/ipv6-deploiement-2026/" target="_blank" rel="noopener noreferrer">Lire la source →</a></div>
+          </div>
+        </article>
+
+        <article class="watch-article" data-id="nat64-464xlat-2026" data-date="2026-02-10" data-source="LePro.dev" data-tags="ipv6-only nat64 dns64 464xlat technique" data-category="ipv6-only">
+          <aside><strong>Février 2026</strong><span>LePro.dev</span></aside>
+          <div class="watch-article-body">
+            <button class="watch-favorite" type="button" data-favorite aria-label="Ajouter aux favoris">☆</button>
+            <h3>Réseau IPv6-Only avec NAT64/464XLAT</h3>
+            <p>Article pratique sur les réseaux IPv6-only, NAT64, DNS64 et 464XLAT pour conserver l'accès aux services IPv4 legacy.</p>
+            <div class="watch-analysis"><strong>Mon analyse</strong><span>Intéressant pour comprendre la suite logique après le dual-stack : simplifier le réseau interne en IPv6 tout en gardant la compatibilité IPv4.</span></div>
+            <div class="watch-card-footer"><div class="watch-tags"><span>IPv6-only</span><span>NAT64</span><span>Architecture</span></div><a href="https://www.lepro.dev/fr/reseau-ipv6-nat64" target="_blank" rel="noopener noreferrer">Lire la source →</a></div>
+          </div>
+        </article>
+
+        <article class="watch-article" data-id="arcep-ipv6-2030" data-date="2026-01-27" data-source="ARCEP" data-tags="arcep officiel ipv6-2030 srv6 transition" data-category="arcep">
+          <aside><strong>Janvier 2026</strong><span>ARCEP</span></aside>
+          <div class="watch-article-body">
+            <button class="watch-favorite" type="button" data-favorite aria-label="Ajouter aux favoris">☆</button>
+            <h3>IPv6 2030 : les conditions d'un futur de l'internet en IPv6</h3>
+            <p>Annonce de la 3e édition de l'atelier IPv6 en France, centrée sur SRv6, IPv6-only et les conditions de réussite de la transition.</p>
+            <div class="watch-analysis"><strong>Mon analyse</strong><span>Source institutionnelle utile : elle montre que l'enjeu n'est plus seulement l'activation IPv6, mais la préparation d'infrastructures IPv6-first.</span></div>
+            <div class="watch-card-footer"><div class="watch-tags"><span>ARCEP</span><span>IPv6 2030</span><span>Transition</span></div><a href="https://www.arcep.fr/actualites/agenda-et-evenements/detail/n/ipv6-2030-atelier-270126.html" target="_blank" rel="noopener noreferrer">Lire la source →</a></div>
+          </div>
+        </article>
+
+        <article class="watch-article" data-id="icann-ipv6-50" data-date="2025-12-12" data-source="Le Monde Informatique" data-tags="icann ipv6 infrastructure adoption" data-category="technique">
+          <aside><strong>Décembre 2025</strong><span>Le Monde Informatique</span></aside>
+          <div class="watch-article-body">
+            <button class="watch-favorite" type="button" data-favorite aria-label="Ajouter aux favoris">☆</button>
+            <h3>Plus de 50 % du trafic mondial est désormais IPv6</h3>
+            <p>Entretien avec Kurtis Lindqvist, CEO de l'ICANN, sur l'adoption mondiale d'IPv6, les noms de domaine et l'évolution des infrastructures Internet.</p>
+            <div class="watch-analysis"><strong>Mon analyse</strong><span>L'article replace IPv6 au niveau mondial : le protocole progresse, mais les coûts et la complexité de migration restent des freins pour les organisations.</span></div>
+            <div class="watch-card-footer"><div class="watch-tags"><span>ICANN</span><span>IPv6</span><span>Infrastructure</span></div><a href="https://www.lemondeinformatique.fr/actualites/lire-entretien-kurtis-lindqvist-ceo-icann--plus-de-50-du-trafic-mondial-est-desormais-ipv6-97911.html" target="_blank" rel="noopener noreferrer">Lire la source →</a></div>
+          </div>
+        </article>
+
+        <article class="watch-article" data-id="ipv6-forum-natif" data-date="2025-11-18" data-source="LaFibre.info" data-tags="ipv6-only entreprise iot architecture" data-category="ipv6-only">
+          <aside><strong>Novembre 2025</strong><span>LaFibre.info</span></aside>
+          <div class="watch-article-body">
+            <button class="watch-favorite" type="button" data-favorite aria-label="Ajouter aux favoris">☆</button>
+            <h3>L'IPv6 Forum appelle à la migration vers IPv6 natif seul</h3>
+            <p>Discussion technique autour du passage à IPv6 natif, de la cohabitation IPv4/IPv6 et des limites pratiques en entreprise et IoT.</p>
+            <div class="watch-analysis"><strong>Mon analyse</strong><span>Bonne source terrain : elle nuance le discours théorique en montrant les blocages concrets côté applications legacy, IoT et réseaux d'entreprise.</span></div>
+            <div class="watch-card-footer"><div class="watch-tags"><span>IPv6-only</span><span>Entreprise</span><span>IoT</span></div><a href="https://lafibre.info/ipv6/lipv6-forum-appel-a-la-migration-vers-ipv6/" target="_blank" rel="noopener noreferrer">Lire la source →</a></div>
+          </div>
+        </article>
+</div>
+    </section>
+
+    <section class="container watch-sources">
+      <div class="watch-section-heading"><div><span></span><h2>Sources suivies</h2></div></div>
+      <div class="watch-source-grid">
+        <a href="https://www.arcep.fr/" target="_blank" rel="noopener noreferrer"><strong>ARCEP</strong><span>Régulateur, chiffres français, baromètre officiel.</span></a>
+        <a href="https://pulse.internetsociety.org/" target="_blank" rel="noopener noreferrer"><strong>Internet Society Pulse</strong><span>Adoption IPv6 mondiale et mesures.</span></a>
+        <a href="https://next.ink/" target="_blank" rel="noopener noreferrer"><strong>Next.ink</strong><span>Analyse tech française et historique.</span></a>
+        <a href="https://www.lemondeinformatique.fr/" target="_blank" rel="noopener noreferrer"><strong>Le Monde Informatique</strong><span>Actualité IT professionnelle.</span></a>
+      </div>
+    </section>
+  </main>
+
+  <footer class="footer"><div class="container footer-inner"><span>© <span data-year>2026</span> Enzo Lefebvre</span><span>Veille technologique · IPv6</span></div></footer>
+</body>
+</html>

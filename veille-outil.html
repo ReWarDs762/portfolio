@@ -1,0 +1,108 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <meta name="robots" content="noindex,nofollow" />
+  <title>Outil veille privé - Enzo Lefebvre</title>
+  <link rel="stylesheet" href="./assets/premium.css" />
+  <script defer src="./assets/premium.js"></script>
+</head>
+<body>
+  <main class="watch-tool-page" data-watch-tool>
+    <section class="container watch-tool-hero">
+      <div>
+        <p class="watch-eyebrow">Outil privé</p>
+        <h1>Ajouter un article de veille</h1>
+        <p>Page non liée dans la navigation. Les articles ajoutés ici sont stockés localement dans ce navigateur et peuvent être exportés.</p>
+      </div>
+      <a class="watch-tool-link" href="./veille.html">Voir la veille</a>
+    </section>
+
+    <section class="container watch-tool-grid">
+      <form class="watch-tool-form" data-watch-tool-form>
+        <div class="watch-tool-field">
+          <label for="tool-title">Titre de l'article</label>
+          <input id="tool-title" name="title" required placeholder="Ex : IPv6 progresse chez les hébergeurs français">
+        </div>
+        <div class="watch-tool-row">
+          <div class="watch-tool-field">
+            <label for="tool-date">Date</label>
+            <input id="tool-date" name="date" type="date" required>
+          </div>
+          <div class="watch-tool-field">
+            <label for="tool-source">Source</label>
+            <input id="tool-source" name="source" required placeholder="ARCEP, Next, Le Monde Informatique...">
+          </div>
+        </div>
+        <div class="watch-tool-field">
+          <label for="tool-url">URL source</label>
+          <input id="tool-url" name="url" type="url" required placeholder="https://...">
+        </div>
+        <div class="watch-tool-row watch-tool-row--three">
+          <div class="watch-tool-field">
+            <label for="tool-status">Statut</label>
+            <select id="tool-status" name="status">
+              <option value="lu">Lu</option>
+              <option value="a-lire">À lire</option>
+              <option value="utilise">Utilisé dans le portfolio</option>
+            </select>
+          </div>
+          <div class="watch-tool-field">
+            <label for="tool-category">Catégorie</label>
+            <select id="tool-category" name="category">
+              <option value="technique">Technique</option>
+              <option value="arcep">ARCEP / officiel</option>
+              <option value="operateur">Opérateurs</option>
+              <option value="ipv6-only">IPv6-only</option>
+            </select>
+          </div>
+          <div class="watch-tool-field">
+            <label for="tool-tags">Tags</label>
+            <input id="tool-tags" name="tags" placeholder="IPv6, ARCEP, Sécurité">
+          </div>
+        </div>
+        <div class="watch-tool-field">
+          <label for="tool-summary">Résumé factuel</label>
+          <textarea id="tool-summary" name="summary" required rows="4" placeholder="Ce que dit l'article, avec les faits importants."></textarea>
+        </div>
+        <div class="watch-tool-field">
+          <label for="tool-analysis">Mon analyse</label>
+          <textarea id="tool-analysis" name="analysis" required rows="4" placeholder="Ce que tu en retiens pour un profil SISR : impact réseau, sécurité, administration..."></textarea>
+        </div>
+        <div class="watch-tool-field">
+          <label for="tool-jury-question">Question possible du jury (privé)</label>
+          <textarea id="tool-jury-question" name="juryQuestion" rows="3" placeholder="Ex : Pourquoi IPv6 n'est-il pas encore déployé partout ?"></textarea>
+        </div>
+        <div class="watch-tool-actions">
+          <button class="btn btn-primary" type="submit">Ajouter l'article</button>
+          <button class="btn" type="button" data-watch-tool-reset>Vider le formulaire</button>
+        </div>
+      </form>
+
+      <aside class="watch-tool-panel">
+        <h2>Articles locaux</h2>
+        <p><strong data-watch-tool-count>0</strong> article(s) préparé(s).</p>
+        <div class="watch-tool-actions watch-tool-actions--stack">
+          <button class="btn" type="button" data-watch-tool-export>Exporter JSON</button>
+          <button class="btn" type="button" data-watch-tool-html>Générer HTML</button>
+          <button class="btn" type="button" data-watch-tool-publish>Bloc à coller</button>
+          <button class="btn btn-primary" type="button" data-watch-tool-auto-publish>Publier automatiquement</button>
+          <button class="btn" type="button" data-watch-tool-pdf>Export PDF / impression</button>
+          <button class="btn" type="button" data-watch-tool-clear>Supprimer les articles locaux</button>
+        </div>
+        <label class="watch-tool-import">
+          Importer JSON
+          <input type="file" accept="application/json" data-watch-tool-import>
+        </label>
+      </aside>
+    </section>
+
+    <section class="container watch-tool-output">
+      <div class="watch-section-heading"><div><span></span><h2>Aperçu</h2></div></div>
+      <div class="watch-list" data-watch-tool-list></div>
+      <textarea readonly data-watch-tool-code placeholder="Le JSON ou le HTML généré apparaîtra ici."></textarea>
+    </section>
+  </main>
+</body>
+</html>
