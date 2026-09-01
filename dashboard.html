@@ -1,0 +1,1154 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <meta name="robots" content="noindex, nofollow" />
+  <meta name="description" content="Tableau de bord personnel : mails, agenda, portefeuille, séances de sport et rétrospective de la semaine. Données stockées localement dans le navigateur." />
+  <title>Dashboard — Enzo Lefebvre</title>
+  <link rel="stylesheet" href="./assets/premium.css" />
+  <style>
+    /* Jetons repris de premium.css : la page reste correcte même si la feuille du site n'est pas chargée. */
+    :root {
+      --bg: #f7f3ec;
+      --surface: #fffaf2;
+      --surface-strong: #ffffff;
+      --ink: #151515;
+      --muted: #68645d;
+      --line: #d7cdbc;
+      --accent: #7a5c34;
+      --accent-dark: #3f2f1b;
+      --radius: 18px;
+      --shadow: 0 24px 70px rgba(31, 25, 16, .08);
+      --max: 1120px;
+      --pad: clamp(20px, 4vw, 52px);
+      --font: "Segoe UI", "Helvetica Neue", Arial, sans-serif;
+      --serif: Georgia, "Times New Roman", serif;
+      /* Rôles data-viz (palette validée : ΔE CVD 18.5 entre les deux séries) */
+      --viz-done: #8f5a19;
+      --viz-plan: #a8998a;
+      --viz-grid: rgba(21, 21, 21, .10);
+      --good: #1f6f4a;
+      --warn: #9a6510;
+      --alert: #a8352c;
+    }
+    * { box-sizing: border-box; }
+    body {
+      margin: 0;
+      font-family: var(--font);
+      color: var(--ink);
+      background: linear-gradient(135deg, #fbf7ef 0%, var(--bg) 48%, #efe6d8 100%);
+      line-height: 1.6;
+    }
+    .container { width: min(100%, var(--max)); margin: 0 auto; padding: 0 var(--pad); }
+    a { color: inherit; text-decoration: none; }
+
+    /* Repli minimal de la navigation si premium.css est absent */
+    .nav { position: sticky; top: 0; z-index: 20; background: rgba(247,243,236,.9); backdrop-filter: blur(18px); border-bottom: 1px solid rgba(215,205,188,.7); }
+    .nav-inner { min-height: 76px; display: flex; align-items: center; justify-content: space-between; gap: 24px; flex-wrap: wrap; }
+    .nav-brand { display: inline-flex; align-items: center; gap: 12px; font-size: .78rem; letter-spacing: .16em; text-transform: uppercase; font-weight: 750; }
+    .nav-brand-mark { width: 34px; height: 34px; border: 1px solid var(--ink); border-radius: 50%; display: grid; place-items: center; letter-spacing: 0; }
+    .nav-links { display: flex; align-items: center; gap: clamp(10px, 2vw, 24px); list-style: none; padding: 0; margin: 0; flex-wrap: wrap; }
+    .nav-links a { font-size: .74rem; letter-spacing: .14em; text-transform: uppercase; color: var(--muted); font-weight: 700; }
+    .nav-links a.is-active, .nav-links a:hover { color: var(--ink); }
+
+    .eyebrow { font-size: .72rem; letter-spacing: .16em; text-transform: uppercase; color: var(--accent); font-weight: 750; margin: 0; }
+    .dash-head { padding: clamp(38px, 6vw, 68px) 0 26px; }
+    .dash-head h1 { font-family: var(--serif); font-weight: 400; font-size: clamp(2.1rem, 5vw, 3.2rem); line-height: 1.08; margin: 14px 0 12px; }
+    .dash-lead { color: var(--muted); margin: 0; max-width: 62ch; }
+
+    .weekbar { display: flex; align-items: center; gap: 12px; flex-wrap: wrap; margin-top: 26px; padding: 14px 18px; background: var(--surface); border: 1px solid var(--line); border-radius: 999px; }
+    .weekbar-label { font-weight: 650; }
+    .weekbar-sub { color: var(--muted); font-size: .86rem; }
+    .weekbar-spacer { flex: 1 1 auto; }
+
+    button, .btn-like { font: inherit; cursor: pointer; }
+    .btn { border: 1px solid var(--line); background: var(--surface-strong); color: var(--ink); border-radius: 999px; padding: 8px 16px; font-size: .82rem; font-weight: 650; transition: border-color .15s ease, background .15s ease; }
+    .btn:hover { border-color: var(--accent); }
+    .btn-primary { background: var(--accent-dark); border-color: var(--accent-dark); color: #fdf9f2; }
+    .btn-primary:hover { background: var(--accent); border-color: var(--accent); }
+    .btn-mini { border: 1px solid var(--line); background: transparent; border-radius: 999px; padding: 3px 10px; font-size: .72rem; font-weight: 650; color: var(--muted); }
+    .btn-mini:hover { color: var(--ink); border-color: var(--accent); }
+    .btn-icon { border: none; background: none; color: var(--muted); padding: 2px 6px; font-size: .95rem; line-height: 1; border-radius: 6px; }
+    .btn-icon:hover { color: var(--alert); background: rgba(168,53,44,.08); }
+
+    /* Bandeau d'indicateurs */
+    .kpis { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 16px; margin: 8px 0 34px; }
+    .kpi { background: var(--surface); border: 1px solid var(--line); border-radius: var(--radius); padding: 20px 22px; box-shadow: var(--shadow); }
+    .kpi-label { font-size: .7rem; letter-spacing: .14em; text-transform: uppercase; color: var(--accent); font-weight: 750; }
+    .kpi-value { font-family: var(--serif); font-size: clamp(1.9rem, 3.4vw, 2.6rem); line-height: 1.1; margin: 10px 0 4px; }
+    .kpi-value.is-small { font-size: clamp(1.4rem, 2.6vw, 1.9rem); }
+    .kpi-note { font-size: .82rem; color: var(--muted); margin: 0; }
+
+    /* Grille des panneaux */
+    .panels { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 20px; padding-bottom: 20px; align-items: start; }
+    .panel { background: var(--surface); border: 1px solid var(--line); border-radius: var(--radius); padding: 22px 24px 24px; box-shadow: var(--shadow); display: flex; flex-direction: column; min-width: 0; }
+    .panel-wide { grid-column: 1 / -1; }
+    .panel-head { display: flex; align-items: baseline; gap: 12px; flex-wrap: wrap; margin-bottom: 6px; }
+    .panel-head h2 { font-family: var(--serif); font-weight: 400; font-size: 1.45rem; margin: 0; }
+    .panel-head .count { font-size: .78rem; color: var(--muted); }
+    .panel-head .panel-actions { margin-left: auto; display: flex; gap: 8px; align-items: center; }
+    .panel-hint { font-size: .82rem; color: var(--muted); margin: 0 0 14px; }
+
+    .list { list-style: none; margin: 0; padding: 0; display: flex; flex-direction: column; gap: 2px; }
+    .row { display: flex; gap: 12px; align-items: flex-start; padding: 11px 2px; border-top: 1px solid rgba(215,205,188,.6); }
+    .row:first-child { border-top: none; }
+    .row-main { flex: 1 1 auto; min-width: 0; }
+    .row-title { font-weight: 650; font-size: .95rem; }
+    .row-sub { font-size: .8rem; color: var(--muted); }
+    .row-side { text-align: right; white-space: nowrap; font-variant-numeric: tabular-nums; }
+    .row.is-done .row-title { text-decoration: line-through; color: var(--muted); font-weight: 500; }
+    .row-actions { display: flex; gap: 4px; align-items: center; }
+
+    .tag { display: inline-block; font-size: .66rem; letter-spacing: .1em; text-transform: uppercase; font-weight: 750; padding: 2px 8px; border-radius: 999px; border: 1px solid var(--line); color: var(--muted); background: var(--surface-strong); }
+    .tag-sport { color: #6b4310; border-color: #d8c4a4; background: #fdf3e3; }
+    .tag-alt { color: #1f4f6f; border-color: #bcd2de; background: #eef5f9; }
+    .tag-cours { color: #4a3f6b; border-color: #cdc7dd; background: #f2f0f8; }
+    .tag-perso { color: #4f5b45; border-color: #cbd5c2; background: #f1f5ee; }
+    .tag-flag { color: var(--alert); border-color: #e3c3c0; background: #fbefee; }
+
+    .empty { color: var(--muted); font-size: .88rem; font-style: italic; padding: 14px 0; }
+
+    /* Listes longues : le panneau garde une hauteur raisonnable, la liste défile. */
+    .scroll-area { overflow-y: auto; overscroll-behavior: contain; padding-right: 4px; }
+    #agenda-list { max-height: 520px; }
+    #mail-list, #wallet-ops, #sport-list { max-height: 330px; }
+    .scroll-area::-webkit-scrollbar { width: 8px; }
+    .scroll-area::-webkit-scrollbar-thumb { background: rgba(122,92,52,.28); border-radius: 8px; }
+
+    /* Formulaires repliables */
+    .form { display: none; gap: 10px; flex-wrap: wrap; padding: 14px; margin: 12px 0 4px; border: 1px dashed var(--line); border-radius: 14px; background: var(--surface-strong); }
+    .form.is-open { display: flex; }
+    .form label { display: flex; flex-direction: column; gap: 4px; font-size: .72rem; letter-spacing: .1em; text-transform: uppercase; color: var(--muted); font-weight: 700; flex: 1 1 150px; }
+    .form input, .form select, .form textarea { font: inherit; font-size: .9rem; padding: 7px 10px; border: 1px solid var(--line); border-radius: 10px; background: var(--surface); color: var(--ink); text-transform: none; letter-spacing: 0; }
+    .form input:focus, .form select:focus, .form textarea:focus { outline: 2px solid rgba(122,92,52,.35); outline-offset: 1px; }
+    .form-actions { display: flex; gap: 8px; align-items: flex-end; flex: 0 0 auto; }
+
+    /* Graphiques */
+    .chart { margin: 6px 0 4px; }
+    .chart-title { font-size: .82rem; font-weight: 650; margin: 0 0 2px; }
+    .legend { display: flex; gap: 14px; flex-wrap: wrap; font-size: .76rem; color: var(--muted); margin: 6px 0 12px; }
+    .legend span { display: inline-flex; align-items: center; gap: 6px; }
+    .swatch { width: 10px; height: 10px; border-radius: 3px; display: inline-block; }
+    .bars { display: grid; grid-template-columns: repeat(7, minmax(0, 1fr)); gap: 8px; align-items: end; height: 168px; padding-top: 18px; border-bottom: 1px solid var(--viz-grid); }
+    .bar-col { display: flex; flex-direction: column; justify-content: flex-end; height: 100%; gap: 3px; position: relative; }
+    .bar-pair { display: flex; align-items: flex-end; justify-content: center; gap: 2px; height: 100%; }
+    .bar { width: 14px; border-radius: 4px 4px 0 0; min-height: 2px; transition: filter .15s ease; }
+    .bar-done { background: var(--viz-done); }
+    .bar-plan { background: var(--viz-plan); }
+    .bar:hover { filter: brightness(1.12); }
+    .bar-value { position: absolute; top: -2px; left: 0; right: 0; text-align: center; font-size: .72rem; font-variant-numeric: tabular-nums; color: var(--ink); font-weight: 650; }
+    .bar-days { display: grid; grid-template-columns: repeat(7, minmax(0, 1fr)); gap: 8px; margin-top: 8px; font-size: .72rem; color: var(--muted); text-align: center; }
+    .bar-days span.is-today { color: var(--accent); font-weight: 750; }
+
+    .hbars { display: flex; flex-direction: column; gap: 8px; margin: 4px 0 2px; }
+    .hbar { display: grid; grid-template-columns: minmax(88px, 30%) 1fr auto; gap: 10px; align-items: center; font-size: .84rem; }
+    .hbar-label { color: var(--muted); overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+    .hbar-track { height: 12px; background: rgba(215,205,188,.35); border-radius: 4px; overflow: hidden; }
+    .hbar-fill { height: 100%; background: var(--viz-done); border-radius: 4px; min-width: 3px; }
+    .hbar-value { font-variant-numeric: tabular-nums; font-weight: 650; }
+
+    .meter { height: 10px; border-radius: 4px; background: rgba(215,205,188,.45); overflow: hidden; margin: 10px 0 6px; }
+    .meter-fill { height: 100%; background: var(--viz-done); border-radius: 4px; }
+
+    .figure-note { font-size: .78rem; color: var(--muted); margin: 6px 0 0; }
+    .totals { display: flex; gap: 22px; flex-wrap: wrap; margin: 2px 0 14px; }
+    .total-block .total-label { font-size: .7rem; letter-spacing: .12em; text-transform: uppercase; color: var(--muted); font-weight: 750; }
+    .total-block .total-value { font-family: var(--serif); font-size: 1.5rem; font-variant-numeric: tabular-nums; }
+    .amount-in { color: var(--good); }
+    .amount-out { color: var(--alert); }
+
+    .recap-grid { display: grid; grid-template-columns: minmax(0, 1.25fr) minmax(0, 1fr); gap: 26px; }
+    .recap-summary { background: var(--surface-strong); border: 1px solid var(--line); border-radius: 14px; padding: 16px 18px; font-size: .92rem; }
+    .recap-summary p { margin: 0 0 8px; color: var(--ink); }
+    .recap-summary ul { margin: 0; padding-left: 1.1rem; color: var(--muted); font-size: .88rem; }
+    .timeline { list-style: none; margin: 0; padding: 0; }
+    .timeline li { border-left: 2px solid var(--line); padding: 0 0 14px 16px; position: relative; }
+    .timeline li::before { content: ""; position: absolute; left: -5px; top: 7px; width: 8px; height: 8px; border-radius: 50%; background: var(--viz-done); }
+    .timeline .tl-day { font-size: .7rem; letter-spacing: .12em; text-transform: uppercase; color: var(--accent); font-weight: 750; }
+    .timeline .tl-item { font-size: .9rem; }
+    .timeline .tl-meta { font-size: .78rem; color: var(--muted); }
+    textarea.notes { width: 100%; min-height: 130px; resize: vertical; font: inherit; font-size: .9rem; padding: 12px 14px; border: 1px solid var(--line); border-radius: 14px; background: var(--surface-strong); color: var(--ink); }
+
+    .data-bar { margin: 30px 0 60px; padding: 22px 24px; border: 1px solid var(--line); border-radius: var(--radius); background: var(--surface); display: flex; gap: 12px; align-items: center; flex-wrap: wrap; }
+    .data-bar p { margin: 0; font-size: .82rem; color: var(--muted); flex: 1 1 260px; }
+
+    .tooltip { position: fixed; z-index: 60; pointer-events: none; opacity: 0; transition: opacity .12s ease; background: var(--accent-dark); color: #fdf9f2; font-size: .78rem; padding: 6px 10px; border-radius: 8px; white-space: nowrap; box-shadow: 0 8px 24px rgba(31,25,16,.24); }
+    .tooltip.is-visible { opacity: 1; }
+
+    .sr-only { position: absolute; width: 1px; height: 1px; padding: 0; margin: -1px; overflow: hidden; clip: rect(0 0 0 0); white-space: nowrap; border: 0; }
+
+    @media (max-width: 900px) {
+      .kpis { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+      .panels { grid-template-columns: minmax(0, 1fr); }
+      .recap-grid { grid-template-columns: minmax(0, 1fr); }
+    }
+    @media (max-width: 520px) {
+      .kpis { grid-template-columns: minmax(0, 1fr); }
+      .hbar { grid-template-columns: minmax(70px, 40%) 1fr auto; }
+    }
+    @media print {
+      .nav, .weekbar button, .panel-actions, .form, .data-bar, .btn { display: none !important; }
+      body { background: #fff; }
+      .panel { box-shadow: none; break-inside: avoid; }
+      .scroll-area { max-height: none !important; overflow: visible !important; }
+    }
+  </style>
+</head>
+<body>
+  <nav class="nav">
+    <div class="container nav-inner">
+      <a href="./index.html" class="nav-brand"><span class="nav-brand-mark">EL</span><span>Enzo Lefebvre</span></a>
+      <ul class="nav-links">
+        <li><a href="./index.html">Accueil</a></li>
+        <li><a href="./parcours.html">Parcours</a></li>
+        <li><a href="./projets.html">Projets</a></li>
+        <li><a href="./competences.html">Compétences</a></li>
+        <li><a href="./veille.html">Veille</a></li>
+        <li><a href="./documents.html">Documents</a></li>
+        <li><a href="./contact.html">Contact</a></li>
+        <li><a href="./dashboard.html" class="is-active">Dashboard</a></li>
+      </ul>
+    </div>
+  </nav>
+
+  <header class="dash-head">
+    <div class="container">
+      <p class="eyebrow">Espace personnel · données locales</p>
+      <h1>Dashboard de ma semaine</h1>
+      <p class="dash-lead">Mails à traiter, agenda, portefeuille, séances de sport et rétrospective — au même endroit. Tout est stocké dans <strong>ce navigateur uniquement</strong> (localStorage) : rien n'est envoyé sur le réseau, rien n'est publié avec le site.</p>
+
+      <div class="weekbar">
+        <button class="btn" id="week-prev" type="button" aria-label="Semaine précédente">←</button>
+        <div>
+          <div class="weekbar-label" id="week-label">Semaine</div>
+          <div class="weekbar-sub" id="week-range"></div>
+        </div>
+        <button class="btn" id="week-next" type="button" aria-label="Semaine suivante">→</button>
+        <button class="btn" id="week-today" type="button">Aujourd'hui</button>
+        <span class="weekbar-spacer"></span>
+        <span class="weekbar-sub" id="clock"></span>
+      </div>
+    </div>
+  </header>
+
+  <main class="container">
+    <section class="kpis" aria-label="Indicateurs de la semaine">
+      <article class="kpi">
+        <div class="kpi-label">Mails à traiter</div>
+        <div class="kpi-value" id="kpi-mail">—</div>
+        <p class="kpi-note" id="kpi-mail-note"></p>
+      </article>
+      <article class="kpi">
+        <div class="kpi-label">Agenda de la semaine</div>
+        <div class="kpi-value" id="kpi-agenda">—</div>
+        <p class="kpi-note" id="kpi-agenda-note"></p>
+      </article>
+      <article class="kpi">
+        <div class="kpi-label">Portefeuille</div>
+        <div class="kpi-value is-small" id="kpi-wallet">—</div>
+        <p class="kpi-note" id="kpi-wallet-note"></p>
+      </article>
+      <article class="kpi">
+        <div class="kpi-label">Sport</div>
+        <div class="kpi-value" id="kpi-sport">—</div>
+        <p class="kpi-note" id="kpi-sport-note"></p>
+      </article>
+    </section>
+
+    <div class="panels">
+      <!-- MAIL -->
+      <section class="panel" aria-labelledby="h-mail">
+        <div class="panel-head">
+          <h2 id="h-mail">Mail</h2>
+          <span class="count" id="mail-count"></span>
+          <span class="panel-actions">
+            <button class="btn-mini" id="mail-filter" type="button">À traiter</button>
+            <button class="btn-mini" data-toggle-form="form-mail" type="button">+ Ajouter</button>
+          </span>
+        </div>
+        <p class="panel-hint">Boîte de réception suivie à la main : ce qui attend une réponse, ce qui est traité.</p>
+
+        <form class="form" id="form-mail">
+          <label>Expéditeur<input type="text" name="de" placeholder="CPAM — Service RH" required /></label>
+          <label>Sujet<input type="text" name="sujet" placeholder="Convention d'alternance" required /></label>
+          <label>Reçu le<input type="date" name="date" /></label>
+          <label>Priorité
+            <select name="important">
+              <option value="non">Normale</option>
+              <option value="oui">Importante</option>
+            </select>
+          </label>
+          <div class="form-actions">
+            <button class="btn btn-primary" type="submit">Ajouter</button>
+            <button class="btn" type="button" data-close-form="form-mail">Annuler</button>
+          </div>
+        </form>
+
+        <ul class="list scroll-area" id="mail-list"></ul>
+      </section>
+
+      <!-- AGENDA -->
+      <section class="panel" aria-labelledby="h-agenda">
+        <div class="panel-head">
+          <h2 id="h-agenda">Calendrier</h2>
+          <span class="count" id="agenda-count"></span>
+          <span class="panel-actions">
+            <label class="btn-mini" for="ics-input" style="cursor:pointer">Importer .ics</label>
+            <input type="file" id="ics-input" accept=".ics,text/calendar" class="sr-only" />
+            <button class="btn-mini" data-toggle-form="form-event" type="button">+ Ajouter</button>
+          </span>
+        </div>
+        <p class="panel-hint">Semaine affichée, jour par jour. L'import <code>.ics</code> (export Google Agenda / Outlook) reconnaît automatiquement les séances de sport.</p>
+
+        <form class="form" id="form-event">
+          <label>Titre<input type="text" name="titre" placeholder="Musculation — bas du corps" required /></label>
+          <label>Date<input type="date" name="date" required /></label>
+          <label>Heure<input type="time" name="heure" value="18:00" /></label>
+          <label>Durée (min)<input type="number" name="duree" min="0" step="5" value="60" /></label>
+          <label>Catégorie
+            <select name="categorie">
+              <option value="sport">Sport</option>
+              <option value="cours">Cours / BTS</option>
+              <option value="alternance">Alternance</option>
+              <option value="perso">Perso</option>
+            </select>
+          </label>
+          <label>Lieu<input type="text" name="lieu" placeholder="Salle / Campus / CPAM" /></label>
+          <div class="form-actions">
+            <button class="btn btn-primary" type="submit">Ajouter</button>
+            <button class="btn" type="button" data-close-form="form-event">Annuler</button>
+          </div>
+        </form>
+
+        <div class="scroll-area" id="agenda-list"></div>
+      </section>
+
+      <!-- PORTEFEUILLE -->
+      <section class="panel" aria-labelledby="h-wallet">
+        <div class="panel-head">
+          <h2 id="h-wallet">Portefeuille</h2>
+          <span class="panel-actions">
+            <button class="btn-mini" data-toggle-form="form-compte" type="button">+ Compte</button>
+            <button class="btn-mini" data-toggle-form="form-ope" type="button">+ Opération</button>
+          </span>
+        </div>
+        <p class="panel-hint">Soldes des comptes et mouvements de la semaine affichée.</p>
+
+        <form class="form" id="form-compte">
+          <label>Nom du compte<input type="text" name="nom" placeholder="Compte courant" required /></label>
+          <label>Type
+            <select name="type">
+              <option value="courant">Courant</option>
+              <option value="epargne">Épargne</option>
+              <option value="especes">Espèces</option>
+              <option value="invest">Investissement</option>
+            </select>
+          </label>
+          <label>Solde (€)<input type="number" name="solde" step="0.01" value="0" required /></label>
+          <div class="form-actions">
+            <button class="btn btn-primary" type="submit">Ajouter</button>
+            <button class="btn" type="button" data-close-form="form-compte">Annuler</button>
+          </div>
+        </form>
+
+        <form class="form" id="form-ope">
+          <label>Libellé<input type="text" name="libelle" placeholder="Courses" required /></label>
+          <label>Montant (€)<input type="number" name="montant" step="0.01" placeholder="-24.90" required /></label>
+          <label>Date<input type="date" name="date" required /></label>
+          <label>Catégorie
+            <select name="categorie">
+              <option value="Courses">Courses</option>
+              <option value="Transport">Transport</option>
+              <option value="Sport">Sport</option>
+              <option value="Logement">Logement</option>
+              <option value="Études">Études</option>
+              <option value="Loisirs">Loisirs</option>
+              <option value="Revenu">Revenu</option>
+              <option value="Autre">Autre</option>
+            </select>
+          </label>
+          <label>Compte<select name="compte" id="ope-compte"></select></label>
+          <div class="form-actions">
+            <button class="btn btn-primary" type="submit">Ajouter</button>
+            <button class="btn" type="button" data-close-form="form-ope">Annuler</button>
+          </div>
+        </form>
+
+        <div class="totals">
+          <div class="total-block"><div class="total-label">Total des comptes</div><div class="total-value" id="wallet-total">—</div></div>
+          <div class="total-block"><div class="total-label">Entrées (semaine)</div><div class="total-value amount-in" id="wallet-in">—</div></div>
+          <div class="total-block"><div class="total-label">Sorties (semaine)</div><div class="total-value amount-out" id="wallet-out">—</div></div>
+        </div>
+
+        <ul class="list" id="wallet-accounts"></ul>
+
+        <div class="chart" id="wallet-chart-wrap">
+          <p class="chart-title">Dépenses de la semaine par poste</p>
+          <div class="hbars" id="wallet-bars"></div>
+          <p class="figure-note" id="wallet-chart-note"></p>
+        </div>
+
+        <ul class="list scroll-area" id="wallet-ops"></ul>
+      </section>
+
+      <!-- SPORT -->
+      <section class="panel" aria-labelledby="h-sport">
+        <div class="panel-head">
+          <h2 id="h-sport">Sport</h2>
+          <span class="count" id="sport-count"></span>
+          <span class="panel-actions">
+            <button class="btn-mini" data-toggle-form="form-event" type="button">+ Séance</button>
+          </span>
+        </div>
+        <p class="panel-hint">Séances issues du calendrier (catégorie « sport »). Coche une séance passée pour la marquer réalisée.</p>
+
+        <div class="chart">
+          <p class="chart-title">Minutes de sport par jour</p>
+          <div class="legend">
+            <span><i class="swatch" style="background: var(--viz-done)"></i> Réalisé</span>
+            <span><i class="swatch" style="background: var(--viz-plan)"></i> Prévu</span>
+          </div>
+          <div class="bars" id="sport-bars"></div>
+          <div class="bar-days" id="sport-days"></div>
+        </div>
+
+        <p class="chart-title" style="margin-top:16px">Objectif hebdomadaire</p>
+        <div class="meter"><div class="meter-fill" id="sport-meter"></div></div>
+        <p class="figure-note" id="sport-goal-note"></p>
+
+        <ul class="list scroll-area" id="sport-list"></ul>
+      </section>
+
+      <!-- RETRO -->
+      <section class="panel panel-wide" aria-labelledby="h-recap">
+        <div class="panel-head">
+          <h2 id="h-recap">Ce que j'ai fait cette semaine</h2>
+          <span class="panel-actions">
+            <button class="btn-mini" id="copy-recap" type="button">Copier le résumé</button>
+          </span>
+        </div>
+        <p class="panel-hint">Rétrospective construite automatiquement à partir de l'agenda, du sport et du portefeuille — complétée par tes notes.</p>
+
+        <div class="recap-grid">
+          <div>
+            <div class="recap-summary" id="recap-summary"></div>
+            <ul class="timeline" id="recap-timeline" style="margin-top:18px"></ul>
+          </div>
+          <div>
+            <p class="chart-title">Notes de la semaine</p>
+            <textarea class="notes" id="recap-notes" placeholder="Ce qui a avancé, ce qui a bloqué, ce qu'il reste à faire…"></textarea>
+            <p class="figure-note" id="notes-status">Enregistrement automatique.</p>
+          </div>
+        </div>
+      </section>
+    </div>
+
+    <section class="data-bar" aria-label="Gestion des données">
+      <p><strong>Tes données restent chez toi.</strong> Elles vivent dans le localStorage de ce navigateur. Exporte-les pour les sauvegarder ou les transférer sur un autre poste — ne les commite pas dans le dépôt, le site est public.</p>
+      <button class="btn" id="btn-export" type="button">Exporter (JSON)</button>
+      <label class="btn btn-like" for="json-input">Importer (JSON)</label>
+      <input type="file" id="json-input" accept="application/json,.json" class="sr-only" />
+      <button class="btn" id="btn-demo" type="button">Charger un exemple</button>
+      <button class="btn" id="btn-reset" type="button">Tout effacer</button>
+    </section>
+  </main>
+
+  <div class="tooltip" id="tooltip" role="status" aria-live="polite"></div>
+  <script>
+  (function () {
+    'use strict';
+
+    var KEY = 'el-dashboard-v1';
+    var JOURS = ['lundi', 'mardi', 'mercredi', 'jeudi', 'vendredi', 'samedi', 'dimanche'];
+    var JOURS_COURTS = ['Lun', 'Mar', 'Mer', 'Jeu', 'Ven', 'Sam', 'Dim'];
+    var SPORT_MOTS = ['sport', 'muscu', 'musculation', 'salle', 'seance', 'séance', 'run', 'running', 'course', 'footing', 'jogging', 'velo', 'vélo', 'natation', 'piscine', 'foot', 'basket', 'tennis', 'boxe', 'escalade', 'yoga', 'crossfit', 'gym', 'cardio', 'trail', 'rando', 'judo', 'badminton', 'handball', 'entrainement', 'entraînement', 'padel', 'squash'];
+    var LIBELLE_CAT = { sport: 'Sport', cours: 'Cours', alternance: 'Alternance', perso: 'Perso' };
+
+    /* ---------------------------------------------------------------- dates */
+    function pad(n) { return String(n).padStart(2, '0'); }
+    function iso(d) { return d.getFullYear() + '-' + pad(d.getMonth() + 1) + '-' + pad(d.getDate()); }
+    function parseISO(s) { var p = String(s).split('-').map(Number); return new Date(p[0], p[1] - 1, p[2]); }
+    function startOfWeek(d) { var x = new Date(d.getFullYear(), d.getMonth(), d.getDate()); x.setDate(x.getDate() - ((x.getDay() + 6) % 7)); return x; }
+    function addDays(d, n) { var x = new Date(d.getTime()); x.setDate(x.getDate() + n); return x; }
+    function sameDay(a, b) { return iso(a) === iso(b); }
+    function dateLongue(d) { return d.toLocaleDateString('fr-FR', { day: 'numeric', month: 'long' }); }
+    function dateCourte(d) { return d.toLocaleDateString('fr-FR', { day: '2-digit', month: '2-digit' }); }
+    function numeroSemaine(d) {
+      var t = new Date(d.getFullYear(), d.getMonth(), d.getDate());
+      t.setDate(t.getDate() + 3 - ((t.getDay() + 6) % 7));
+      var premier = new Date(t.getFullYear(), 0, 4);
+      return 1 + Math.round(((t - premier) / 86400000 - 3 + ((premier.getDay() + 6) % 7)) / 7);
+    }
+    function momentEvenement(ev) {
+      var d = parseISO(ev.date);
+      if (ev.heure) { var h = ev.heure.split(':'); d.setHours(Number(h[0]) || 0, Number(h[1]) || 0, 0, 0); }
+      return d;
+    }
+
+    /* --------------------------------------------------------------- format */
+    var eur = new Intl.NumberFormat('fr-FR', { style: 'currency', currency: 'EUR', maximumFractionDigits: 2 });
+    var eurCourt = new Intl.NumberFormat('fr-FR', { style: 'currency', currency: 'EUR', maximumFractionDigits: 0 });
+    function money(n) { return eur.format(n || 0); }
+    function duree(min) {
+      min = Math.round(min || 0);
+      if (min < 60) return min + ' min';
+      var h = Math.floor(min / 60), m = min % 60;
+      return m ? h + ' h ' + pad(m) : h + ' h';
+    }
+    function esc(s) {
+      return String(s == null ? '' : s).replace(/[&<>"']/g, function (c) {
+        return { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c];
+      });
+    }
+    function uid() { return Date.now().toString(36) + Math.random().toString(36).slice(2, 7); }
+
+    /* ---------------------------------------------------------------- state */
+    var etatVide = {
+      version: 1,
+      reglages: { objectifSportMin: 180 },
+      mails: [],
+      evenements: [],
+      portefeuille: { comptes: [], operations: [] },
+      notes: {}
+    };
+
+    function charger() {
+      try {
+        var brut = localStorage.getItem(KEY);
+        if (!brut) return JSON.parse(JSON.stringify(etatVide));
+        var d = JSON.parse(brut);
+        var base = JSON.parse(JSON.stringify(etatVide));
+        base.reglages = Object.assign(base.reglages, d.reglages || {});
+        base.mails = Array.isArray(d.mails) ? d.mails : [];
+        base.evenements = Array.isArray(d.evenements) ? d.evenements : [];
+        if (d.portefeuille) {
+          base.portefeuille.comptes = Array.isArray(d.portefeuille.comptes) ? d.portefeuille.comptes : [];
+          base.portefeuille.operations = Array.isArray(d.portefeuille.operations) ? d.portefeuille.operations : [];
+        }
+        base.notes = d.notes && typeof d.notes === 'object' ? d.notes : {};
+        return base;
+      } catch (e) {
+        console.warn('Dashboard : données illisibles, repartir à vide.', e);
+        return JSON.parse(JSON.stringify(etatVide));
+      }
+    }
+    function sauver() {
+      try { localStorage.setItem(KEY, JSON.stringify(etat)); }
+      catch (e) { console.warn('Dashboard : sauvegarde impossible (mode privé ?).', e); }
+    }
+
+    var etat = charger();
+    var semaine = startOfWeek(new Date());
+    var filtreMail = 'a-traiter';
+
+    /* ------------------------------------------------------------ sélecteurs */
+    function $(id) { return document.getElementById(id); }
+    function jourIndex(dateStr) {
+      var diff = Math.round((parseISO(dateStr) - semaine) / 86400000);
+      return diff >= 0 && diff < 7 ? diff : -1;
+    }
+    function evenementsSemaine() {
+      return etat.evenements
+        .filter(function (ev) { return jourIndex(ev.date) >= 0; })
+        .sort(function (a, b) { return momentEvenement(a) - momentEvenement(b); });
+    }
+    function operationsSemaine() {
+      return etat.portefeuille.operations
+        .filter(function (o) { return jourIndex(o.date) >= 0; })
+        .sort(function (a, b) { return parseISO(a.date) - parseISO(b.date); });
+    }
+    function estPasse(ev) { return momentEvenement(ev) <= new Date(); }
+    function seanceFaite(ev) { return ev.fait === true || (ev.fait !== false && estPasse(ev)); }
+
+    /* ------------------------------------------------------------- indicateurs */
+    function rendreKpis() {
+      var aTraiter = etat.mails.filter(function (m) { return !m.traite; });
+      var urgents = aTraiter.filter(function (m) { return m.important; }).length;
+      $('kpi-mail').textContent = aTraiter.length;
+      $('kpi-mail-note').textContent = urgents
+        ? urgents + (urgents > 1 ? ' marqués importants' : ' marqué important')
+        : (aTraiter.length ? 'aucun marqué important' : 'boîte à jour');
+
+      var evs = evenementsSemaine();
+      var aujourdHui = evs.filter(function (ev) { return sameDay(parseISO(ev.date), new Date()); });
+      $('kpi-agenda').textContent = evs.length;
+      $('kpi-agenda-note').textContent = aujourdHui.length
+        ? aujourdHui.length + (aujourdHui.length > 1 ? ' aujourd’hui' : ' aujourd’hui') + ' · ' + esc(aujourdHui[0].titre)
+        : 'rien aujourd’hui';
+
+      var total = etat.portefeuille.comptes.reduce(function (s, c) { return s + Number(c.solde || 0); }, 0);
+      var ops = operationsSemaine();
+      var sorties = ops.reduce(function (s, o) { return s + (Number(o.montant) < 0 ? Number(o.montant) : 0); }, 0);
+      $('kpi-wallet').textContent = etat.portefeuille.comptes.length ? eurCourt.format(total) : '—';
+      $('kpi-wallet-note').textContent = ops.length
+        ? money(Math.abs(sorties)) + ' dépensés cette semaine'
+        : 'aucun mouvement cette semaine';
+
+      var sport = evs.filter(function (ev) { return ev.categorie === 'sport'; });
+      var faites = sport.filter(seanceFaite);
+      var minutes = faites.reduce(function (s, ev) { return s + Number(ev.duree || 0); }, 0);
+      $('kpi-sport').textContent = faites.length + (sport.length > faites.length ? ' / ' + sport.length : '');
+      $('kpi-sport-note').textContent = minutes ? duree(minutes) + ' d’entraînement' : 'aucune séance réalisée';
+    }
+
+    /* -------------------------------------------------------------- panneau mail */
+    function rendreMail() {
+      var liste = etat.mails.slice().sort(function (a, b) {
+        if (!!a.traite !== !!b.traite) return a.traite ? 1 : -1;
+        if (!!a.important !== !!b.important) return a.important ? -1 : 1;
+        return String(b.date || '').localeCompare(String(a.date || ''));
+      });
+      if (filtreMail === 'a-traiter') liste = liste.filter(function (m) { return !m.traite; });
+
+      $('mail-filter').textContent = filtreMail === 'a-traiter' ? 'À traiter' : 'Tous';
+      $('mail-count').textContent = etat.mails.filter(function (m) { return !m.traite; }).length + ' en attente / ' + etat.mails.length;
+
+      var ul = $('mail-list');
+      if (!liste.length) {
+        ul.innerHTML = '<li class="empty">' + (etat.mails.length ? 'Rien à traiter — bien joué.' : 'Aucun mail suivi pour le moment.') + '</li>';
+        return;
+      }
+      ul.innerHTML = liste.map(function (m) {
+        return '<li class="row' + (m.traite ? ' is-done' : '') + '">' +
+          '<div class="row-main">' +
+            '<div class="row-title">' + esc(m.sujet) + (m.important && !m.traite ? ' <span class="tag tag-flag">Important</span>' : '') + '</div>' +
+            '<div class="row-sub">' + esc(m.de) + (m.date ? ' · ' + dateCourte(parseISO(m.date)) : '') + '</div>' +
+          '</div>' +
+          '<div class="row-actions">' +
+            '<button class="btn-mini" data-mail-toggle="' + m.id + '">' + (m.traite ? 'Rouvrir' : 'Traité') + '</button>' +
+            '<button class="btn-icon" data-mail-del="' + m.id + '" aria-label="Supprimer">✕</button>' +
+          '</div>' +
+        '</li>';
+      }).join('');
+    }
+
+    /* ------------------------------------------------------------ panneau agenda */
+    function rendreAgenda() {
+      var evs = evenementsSemaine();
+      $('agenda-count').textContent = evs.length + (evs.length > 1 ? ' événements' : ' événement');
+      var hote = $('agenda-list');
+      if (!evs.length) {
+        hote.innerHTML = '<p class="empty">Semaine vide. Ajoute un événement ou importe un fichier .ics.</p>';
+        return;
+      }
+      var html = '';
+      for (var i = 0; i < 7; i++) {
+        var jour = addDays(semaine, i);
+        var duJour = evs.filter(function (ev) { return ev.date === iso(jour); });
+        if (!duJour.length) continue;
+        var estAujourdHui = sameDay(jour, new Date());
+        html += '<p class="eyebrow" style="margin:14px 0 2px' + (estAujourdHui ? '' : ';color:var(--muted)') + '">' +
+          JOURS[i] + ' ' + dateCourte(jour) + (estAujourdHui ? ' · aujourd’hui' : '') + '</p>';
+        html += '<ul class="list">' + duJour.map(function (ev) {
+          var cat = ev.categorie || 'perso';
+          return '<li class="row' + (ev.categorie === 'sport' && seanceFaite(ev) ? ' is-done' : '') + '">' +
+            '<div class="row-main">' +
+              '<div class="row-title">' + esc(ev.titre) + ' <span class="tag tag-' + (cat === 'alternance' ? 'alt' : cat) + '">' + (LIBELLE_CAT[cat] || 'Perso') + '</span></div>' +
+              '<div class="row-sub">' + (ev.heure ? esc(ev.heure) : 'journée') +
+                (ev.duree ? ' · ' + duree(ev.duree) : '') +
+                (ev.lieu ? ' · ' + esc(ev.lieu) : '') + '</div>' +
+            '</div>' +
+            '<div class="row-actions"><button class="btn-icon" data-ev-del="' + ev.id + '" aria-label="Supprimer">✕</button></div>' +
+          '</li>';
+        }).join('') + '</ul>';
+      }
+      hote.innerHTML = html;
+    }
+
+    /* ------------------------------------------------------- panneau portefeuille */
+    function rendrePortefeuille() {
+      var comptes = etat.portefeuille.comptes;
+      var ops = operationsSemaine();
+      var total = comptes.reduce(function (s, c) { return s + Number(c.solde || 0); }, 0);
+      var entrees = ops.reduce(function (s, o) { return s + Math.max(Number(o.montant) || 0, 0); }, 0);
+      var sorties = ops.reduce(function (s, o) { return s + Math.min(Number(o.montant) || 0, 0); }, 0);
+
+      $('wallet-total').textContent = comptes.length ? money(total) : '—';
+      $('wallet-in').textContent = money(entrees);
+      $('wallet-out').textContent = money(Math.abs(sorties));
+
+      $('wallet-accounts').innerHTML = comptes.length
+        ? comptes.map(function (c) {
+            return '<li class="row"><div class="row-main"><div class="row-title">' + esc(c.nom) + '</div>' +
+              '<div class="row-sub">' + esc(c.type || 'courant') + '</div></div>' +
+              '<div class="row-side">' + money(Number(c.solde || 0)) + '</div>' +
+              '<div class="row-actions"><button class="btn-icon" data-cpt-del="' + c.id + '" aria-label="Supprimer">✕</button></div></li>';
+          }).join('')
+        : '<li class="empty">Aucun compte enregistré.</li>';
+
+      // Dépenses de la semaine par poste — barres horizontales, une seule teinte, valeurs étiquetées.
+      var parPoste = {};
+      ops.forEach(function (o) {
+        var m = Number(o.montant) || 0;
+        if (m >= 0) return;
+        var cat = o.categorie || 'Autre';
+        parPoste[cat] = (parPoste[cat] || 0) + Math.abs(m);
+      });
+      var postes = Object.keys(parPoste).map(function (k) { return { nom: k, val: parPoste[k] }; })
+        .sort(function (a, b) { return b.val - a.val; });
+      var maxPoste = postes.length ? postes[0].val : 0;
+      $('wallet-bars').innerHTML = postes.length
+        ? postes.map(function (p) {
+            var pct = maxPoste ? Math.max((p.val / maxPoste) * 100, 2) : 0;
+            return '<div class="hbar"><span class="hbar-label">' + esc(p.nom) + '</span>' +
+              '<span class="hbar-track"><span class="hbar-fill" style="width:' + pct.toFixed(1) + '%" data-tip="' + esc(p.nom) + ' · ' + esc(money(p.val)) + '"></span></span>' +
+              '<span class="hbar-value">' + money(p.val) + '</span></div>';
+          }).join('')
+        : '<p class="empty">Aucune dépense sur la semaine affichée.</p>';
+      $('wallet-chart-note').textContent = postes.length
+        ? 'Total des sorties : ' + money(Math.abs(sorties)) + ' sur ' + postes.length + (postes.length > 1 ? ' postes.' : ' poste.')
+        : '';
+
+      $('wallet-ops').innerHTML = ops.length
+        ? ops.slice().reverse().map(function (o) {
+            var m = Number(o.montant) || 0;
+            return '<li class="row"><div class="row-main"><div class="row-title">' + esc(o.libelle) + '</div>' +
+              '<div class="row-sub">' + dateCourte(parseISO(o.date)) + ' · ' + esc(o.categorie || 'Autre') + '</div></div>' +
+              '<div class="row-side ' + (m < 0 ? 'amount-out' : 'amount-in') + '">' + (m > 0 ? '+' : '') + money(m) + '</div>' +
+              '<div class="row-actions"><button class="btn-icon" data-ope-del="' + o.id + '" aria-label="Supprimer">✕</button></div></li>';
+          }).join('')
+        : '<li class="empty">Aucune opération sur la semaine affichée.</li>';
+
+      var sel = $('ope-compte');
+      var courant = sel.value;
+      sel.innerHTML = comptes.length
+        ? comptes.map(function (c) { return '<option value="' + c.id + '">' + esc(c.nom) + '</option>'; }).join('')
+        : '<option value="">— aucun compte —</option>';
+      if (courant) sel.value = courant;
+    }
+
+    /* ------------------------------------------------------------- panneau sport */
+    function rendreSport() {
+      var seances = evenementsSemaine().filter(function (ev) { return ev.categorie === 'sport'; });
+      var parJourFait = [0, 0, 0, 0, 0, 0, 0];
+      var parJourPrevu = [0, 0, 0, 0, 0, 0, 0];
+      seances.forEach(function (ev) {
+        var i = jourIndex(ev.date);
+        if (i < 0) return;
+        if (seanceFaite(ev)) parJourFait[i] += Number(ev.duree || 0);
+        else parJourPrevu[i] += Number(ev.duree || 0);
+      });
+      var max = Math.max.apply(null, parJourFait.concat(parJourPrevu).concat([60]));
+
+      $('sport-bars').innerHTML = parJourFait.map(function (fait, i) {
+        var prevu = parJourPrevu[i];
+        var totalJour = fait + prevu;
+        var hFait = fait ? Math.max((fait / max) * 100, 1.5) : 0;
+        var hPrevu = prevu ? Math.max((prevu / max) * 100, 1.5) : 0;
+        return '<div class="bar-col">' +
+          (totalJour ? '<span class="bar-value">' + totalJour + '</span>' : '') +
+          '<div class="bar-pair">' +
+            (fait ? '<span class="bar bar-done" style="height:' + hFait.toFixed(1) + '%" data-tip="' + JOURS[i] + ' · ' + duree(fait) + ' réalisés"></span>' : '') +
+            (prevu ? '<span class="bar bar-plan" style="height:' + hPrevu.toFixed(1) + '%" data-tip="' + JOURS[i] + ' · ' + duree(prevu) + ' prévus"></span>' : '') +
+          '</div></div>';
+      }).join('');
+      $('sport-days').innerHTML = JOURS_COURTS.map(function (j, i) {
+        return '<span class="' + (sameDay(addDays(semaine, i), new Date()) ? 'is-today' : '') + '">' + j + '</span>';
+      }).join('');
+
+      var minutesFaites = parJourFait.reduce(function (a, b) { return a + b; }, 0);
+      var objectif = Number(etat.reglages.objectifSportMin) || 180;
+      var pct = Math.min((minutesFaites / objectif) * 100, 100);
+      $('sport-meter').style.width = pct.toFixed(1) + '%';
+      $('sport-goal-note').textContent = duree(minutesFaites) + ' réalisés sur un objectif de ' + duree(objectif) +
+        ' (' + Math.round(pct) + ' %)' + (minutesFaites >= objectif ? ' — objectif atteint.' : '.');
+
+      var faites = seances.filter(seanceFaite).length;
+      $('sport-count').textContent = faites + ' réalisée' + (faites > 1 ? 's' : '') + ' / ' + seances.length + ' prévue' + (seances.length > 1 ? 's' : '');
+
+      $('sport-list').innerHTML = seances.length
+        ? seances.map(function (ev) {
+            var fait = seanceFaite(ev);
+            return '<li class="row' + (fait ? ' is-done' : '') + '">' +
+              '<div class="row-main"><div class="row-title">' + esc(ev.titre) + '</div>' +
+              '<div class="row-sub">' + JOURS[Math.max(jourIndex(ev.date), 0)] + ' ' + (ev.heure ? esc(ev.heure) : '') +
+                (ev.duree ? ' · ' + duree(ev.duree) : '') + (ev.lieu ? ' · ' + esc(ev.lieu) : '') + '</div></div>' +
+              '<div class="row-actions"><button class="btn-mini" data-sport-toggle="' + ev.id + '">' +
+                (fait ? 'Annuler' : 'Fait') + '</button></div></li>';
+          }).join('')
+        : '<li class="empty">Aucune séance dans le calendrier cette semaine.</li>';
+    }
+
+    /* ------------------------------------------------------------ rétrospective */
+    function texteRecap() {
+      var evs = evenementsSemaine();
+      var maintenant = new Date();
+      var passes = evs.filter(function (ev) { return momentEvenement(ev) <= maintenant; });
+      var sport = evs.filter(function (ev) { return ev.categorie === 'sport' && seanceFaite(ev); });
+      var minutes = sport.reduce(function (s, ev) { return s + Number(ev.duree || 0); }, 0);
+      var ops = operationsSemaine();
+      var sorties = Math.abs(ops.reduce(function (s, o) { return s + Math.min(Number(o.montant) || 0, 0); }, 0));
+      var entrees = ops.reduce(function (s, o) { return s + Math.max(Number(o.montant) || 0, 0); }, 0);
+      var mailsTraites = etat.mails.filter(function (m) { return m.traite; }).length;
+      var parCat = {};
+      passes.forEach(function (ev) { var c = LIBELLE_CAT[ev.categorie] || 'Perso'; parCat[c] = (parCat[c] || 0) + 1; });
+      var detailCat = Object.keys(parCat).map(function (c) { return parCat[c] + ' ' + c.toLowerCase(); }).join(', ');
+
+      return {
+        phrase: 'Semaine ' + numeroSemaine(semaine) + ' — du ' + dateLongue(semaine) + ' au ' + dateLongue(addDays(semaine, 6)) + '.',
+        lignes: [
+          passes.length + ' événement' + (passes.length > 1 ? 's' : '') + ' passé' + (passes.length > 1 ? 's' : '') +
+            (detailCat ? ' (' + detailCat + ')' : ''),
+          sport.length + ' séance' + (sport.length > 1 ? 's' : '') + ' de sport réalisée' + (sport.length > 1 ? 's' : '') +
+            (minutes ? ', ' + duree(minutes) + ' au total' : ''),
+          ops.length + ' mouvement' + (ops.length > 1 ? 's' : '') + ' sur les comptes : ' + money(sorties) + ' de sorties, ' + money(entrees) + ' d’entrées',
+          mailsTraites + ' mail' + (mailsTraites > 1 ? 's' : '') + ' traité' + (mailsTraites > 1 ? 's' : '') + ', ' +
+            etat.mails.filter(function (m) { return !m.traite; }).length + ' encore en attente'
+        ]
+      };
+    }
+
+    function rendreRecap() {
+      var r = texteRecap();
+      $('recap-summary').innerHTML = '<p><strong>' + esc(r.phrase) + '</strong></p><ul>' +
+        r.lignes.map(function (l) { return '<li>' + esc(l) + '</li>'; }).join('') + '</ul>';
+
+      var maintenant = new Date();
+      var evs = evenementsSemaine().filter(function (ev) { return momentEvenement(ev) <= maintenant; });
+      var ops = operationsSemaine();
+      var html = '';
+      for (var i = 0; i < 7; i++) {
+        var jour = addDays(semaine, i);
+        if (jour > maintenant && !sameDay(jour, maintenant)) break;
+        var duJour = evs.filter(function (ev) { return ev.date === iso(jour); });
+        var opsJour = ops.filter(function (o) { return o.date === iso(jour); });
+        var depense = Math.abs(opsJour.reduce(function (s, o) { return s + Math.min(Number(o.montant) || 0, 0); }, 0));
+        if (!duJour.length && !depense) continue;
+        html += '<li><span class="tl-day">' + JOURS[i] + ' ' + dateCourte(jour) + '</span>';
+        duJour.forEach(function (ev) {
+          html += '<div class="tl-item">' + esc(ev.titre) +
+            '<span class="tl-meta"> — ' + (LIBELLE_CAT[ev.categorie] || 'Perso') +
+            (ev.duree ? ' · ' + duree(ev.duree) : '') + '</span></div>';
+        });
+        if (depense) html += '<div class="tl-meta">Dépenses du jour : ' + money(depense) + '</div>';
+        html += '</li>';
+      }
+      $('recap-timeline').innerHTML = html || '<li class="empty">Rien d’enregistré sur cette semaine pour l’instant.</li>';
+
+      $('recap-notes').value = etat.notes[iso(semaine)] || '';
+    }
+
+    /* ------------------------------------------------------------------ rendu */
+    function rendre() {
+      $('week-label').textContent = 'Semaine ' + numeroSemaine(semaine);
+      $('week-range').textContent = 'du ' + dateLongue(semaine) + ' au ' + dateLongue(addDays(semaine, 6));
+      rendreKpis();
+      rendreMail();
+      rendreAgenda();
+      rendrePortefeuille();
+      rendreSport();
+      rendreRecap();
+    }
+    function majEtRendre() { sauver(); rendre(); }
+
+    /* ------------------------------------------------------------ interactions */
+    $('week-prev').addEventListener('click', function () { semaine = addDays(semaine, -7); rendre(); });
+    $('week-next').addEventListener('click', function () { semaine = addDays(semaine, 7); rendre(); });
+    $('week-today').addEventListener('click', function () { semaine = startOfWeek(new Date()); rendre(); });
+    $('mail-filter').addEventListener('click', function () {
+      filtreMail = filtreMail === 'a-traiter' ? 'tous' : 'a-traiter';
+      rendreMail();
+    });
+
+    document.addEventListener('click', function (e) {
+      var t = e.target.closest('[data-toggle-form], [data-close-form], [data-mail-toggle], [data-mail-del], [data-ev-del], [data-sport-toggle], [data-cpt-del], [data-ope-del]');
+      if (!t) return;
+      var d = t.dataset;
+      if (d.toggleForm) { var f = $(d.toggleForm); f.classList.toggle('is-open'); if (f.classList.contains('is-open')) { var first = f.querySelector('input, select'); if (first) first.focus(); } return; }
+      if (d.closeForm) { $(d.closeForm).classList.remove('is-open'); return; }
+      if (d.mailToggle) {
+        etat.mails.forEach(function (m) { if (m.id === d.mailToggle) m.traite = !m.traite; });
+        majEtRendre(); return;
+      }
+      if (d.mailDel) { etat.mails = etat.mails.filter(function (m) { return m.id !== d.mailDel; }); majEtRendre(); return; }
+      if (d.evDel) { etat.evenements = etat.evenements.filter(function (ev) { return ev.id !== d.evDel; }); majEtRendre(); return; }
+      if (d.sportToggle) {
+        etat.evenements.forEach(function (ev) { if (ev.id === d.sportToggle) ev.fait = !seanceFaite(ev); });
+        majEtRendre(); return;
+      }
+      if (d.cptDel) { etat.portefeuille.comptes = etat.portefeuille.comptes.filter(function (c) { return c.id !== d.cptDel; }); majEtRendre(); return; }
+      if (d.opeDel) { etat.portefeuille.operations = etat.portefeuille.operations.filter(function (o) { return o.id !== d.opeDel; }); majEtRendre(); return; }
+    });
+
+    $('form-mail').addEventListener('submit', function (e) {
+      e.preventDefault();
+      var f = e.target;
+      etat.mails.push({
+        id: uid(), de: f.de.value.trim(), sujet: f.sujet.value.trim(),
+        date: f.date.value || iso(new Date()), important: f.important.value === 'oui', traite: false
+      });
+      f.reset(); f.classList.remove('is-open'); majEtRendre();
+    });
+
+    $('form-event').addEventListener('submit', function (e) {
+      e.preventDefault();
+      var f = e.target;
+      etat.evenements.push({
+        id: uid(), titre: f.titre.value.trim(), date: f.date.value, heure: f.heure.value,
+        duree: Number(f.duree.value) || 0, categorie: f.categorie.value, lieu: f.lieu.value.trim()
+      });
+      var d = parseISO(f.date.value);
+      if (jourIndex(f.date.value) < 0) semaine = startOfWeek(d);
+      f.reset(); f.classList.remove('is-open'); majEtRendre();
+    });
+
+    $('form-compte').addEventListener('submit', function (e) {
+      e.preventDefault();
+      var f = e.target;
+      etat.portefeuille.comptes.push({ id: uid(), nom: f.nom.value.trim(), type: f.type.value, solde: Number(f.solde.value) || 0 });
+      f.reset(); f.classList.remove('is-open'); majEtRendre();
+    });
+
+    $('form-ope').addEventListener('submit', function (e) {
+      e.preventDefault();
+      var f = e.target;
+      var montant = Number(f.montant.value);
+      if (!isFinite(montant)) return;
+      if (f.categorie.value !== 'Revenu' && montant > 0) montant = -montant;
+      etat.portefeuille.operations.push({
+        id: uid(), libelle: f.libelle.value.trim(), montant: montant, date: f.date.value,
+        categorie: f.categorie.value, compteId: f.compte.value || null
+      });
+      var compte = etat.portefeuille.comptes.filter(function (c) { return c.id === f.compte.value; })[0];
+      if (compte) compte.solde = Number(compte.solde || 0) + montant;
+      f.reset(); f.classList.remove('is-open'); majEtRendre();
+    });
+
+    var timerNotes;
+    $('recap-notes').addEventListener('input', function (e) {
+      etat.notes[iso(semaine)] = e.target.value;
+      clearTimeout(timerNotes);
+      $('notes-status').textContent = 'Enregistrement…';
+      timerNotes = setTimeout(function () { sauver(); $('notes-status').textContent = 'Enregistré localement.'; }, 400);
+    });
+
+    $('copy-recap').addEventListener('click', function () {
+      var r = texteRecap();
+      var notes = etat.notes[iso(semaine)];
+      var txt = r.phrase + '\n' + r.lignes.map(function (l) { return '- ' + l; }).join('\n') + (notes ? '\n\nNotes :\n' + notes : '');
+      var bouton = this;
+      if (navigator.clipboard && navigator.clipboard.writeText) {
+        navigator.clipboard.writeText(txt).then(function () {
+          bouton.textContent = 'Copié ✓';
+          setTimeout(function () { bouton.textContent = 'Copier le résumé'; }, 1600);
+        });
+      } else {
+        window.prompt('Résumé de la semaine :', txt);
+      }
+    });
+
+    /* --------------------------------------------------------- import iCalendar */
+    function deplierICS(texte) {
+      return texte.replace(/\r\n/g, '\n').replace(/\n[ \t]/g, '').split('\n');
+    }
+    function dateICS(valeur) {
+      var m = /^(\d{4})(\d{2})(\d{2})(?:T(\d{2})(\d{2})(\d{2})(Z)?)?$/.exec(valeur.trim());
+      if (!m) return null;
+      if (m[7]) {
+        var utc = new Date(Date.UTC(+m[1], +m[2] - 1, +m[3], +m[4], +m[5], +m[6]));
+        return utc;
+      }
+      return new Date(+m[1], +m[2] - 1, +m[3], +(m[4] || 0), +(m[5] || 0), +(m[6] || 0));
+    }
+    function estSport(titre) {
+      var t = titre.toLowerCase();
+      return SPORT_MOTS.some(function (mot) { return t.indexOf(mot) !== -1; });
+    }
+    function devineCategorie(titre) {
+      var t = titre.toLowerCase();
+      if (estSport(titre)) return 'sport';
+      if (/\b(cpam|alternance|entreprise|r[ée]union|ticket|astreinte)\b/.test(t)) return 'alternance';
+      if (/\b(cours|bts|ds|examen|tp|td|sio|sisr|cesi|soutenance|stage|r[ée]visions?|partiel)\b/.test(t)) return 'cours';
+      return 'perso';
+    }
+    function importerICS(texte) {
+      var lignes = deplierICS(texte);
+      var evs = [], courant = null;
+      lignes.forEach(function (ligne) {
+        if (ligne.indexOf('BEGIN:VEVENT') === 0) { courant = {}; return; }
+        if (ligne.indexOf('END:VEVENT') === 0) {
+          if (courant && courant.debut && courant.titre) {
+            var debut = courant.debut, fin = courant.fin;
+            var minutes = (fin && !courant.journee) ? Math.max(Math.round((fin - debut) / 60000), 0) : 0;
+            evs.push({
+              id: uid(),
+              titre: courant.titre,
+              date: iso(debut),
+              heure: courant.journee ? '' : pad(debut.getHours()) + ':' + pad(debut.getMinutes()),
+              duree: minutes,
+              categorie: devineCategorie(courant.titre),
+              lieu: courant.lieu || '',
+              source: 'ics'
+            });
+          }
+          courant = null; return;
+        }
+        if (!courant) return;
+        var sep = ligne.indexOf(':');
+        if (sep === -1) return;
+        var cle = ligne.slice(0, sep), val = ligne.slice(sep + 1);
+        var nom = cle.split(';')[0].toUpperCase();
+        if (nom === 'SUMMARY') courant.titre = val.replace(/\\,/g, ',').replace(/\\n/gi, ' ').replace(/\;/g, ';').trim();
+        else if (nom === 'LOCATION') courant.lieu = val.replace(/\\,/g, ',').trim();
+        else if (nom === 'DTSTART') { courant.debut = dateICS(val); courant.journee = /VALUE=DATE(?!-TIME)/i.test(cle); }
+        else if (nom === 'DTEND') courant.fin = dateICS(val);
+      });
+      return evs;
+    }
+
+    $('ics-input').addEventListener('change', function (e) {
+      var fichier = e.target.files && e.target.files[0];
+      if (!fichier) return;
+      var lecteur = new FileReader();
+      lecteur.onload = function () {
+        var nouveaux = importerICS(String(lecteur.result));
+        if (!nouveaux.length) { alert('Aucun événement lisible dans ce fichier .ics.'); return; }
+        var connus = {};
+        etat.evenements.forEach(function (ev) { connus[ev.date + '|' + ev.heure + '|' + ev.titre] = true; });
+        var ajoutes = nouveaux.filter(function (ev) { return !connus[ev.date + '|' + ev.heure + '|' + ev.titre]; });
+        etat.evenements = etat.evenements.concat(ajoutes);
+        majEtRendre();
+        alert(ajoutes.length + ' événement(s) importé(s), ' + (nouveaux.length - ajoutes.length) + ' doublon(s) ignoré(s).\n' +
+          ajoutes.filter(function (ev) { return ev.categorie === 'sport'; }).length + ' reconnu(s) comme séance(s) de sport.');
+      };
+      lecteur.readAsText(fichier);
+      e.target.value = '';
+    });
+
+    /* ---------------------------------------------------------- export / import */
+    $('btn-export').addEventListener('click', function () {
+      var blob = new Blob([JSON.stringify(etat, null, 2)], { type: 'application/json' });
+      var url = URL.createObjectURL(blob);
+      var a = document.createElement('a');
+      a.href = url; a.download = 'dashboard-' + iso(new Date()) + '.json';
+      document.body.appendChild(a); a.click(); a.remove();
+      setTimeout(function () { URL.revokeObjectURL(url); }, 1000);
+    });
+
+    $('json-input').addEventListener('change', function (e) {
+      var fichier = e.target.files && e.target.files[0];
+      if (!fichier) return;
+      var lecteur = new FileReader();
+      lecteur.onload = function () {
+        try {
+          var donnees = JSON.parse(String(lecteur.result));
+          localStorage.setItem(KEY, JSON.stringify(donnees));
+          etat = charger();
+          majEtRendre();
+        } catch (err) { alert('Fichier JSON illisible.'); }
+      };
+      lecteur.readAsText(fichier);
+      e.target.value = '';
+    });
+
+    $('btn-reset').addEventListener('click', function () {
+      if (!confirm('Effacer toutes les données du dashboard dans ce navigateur ?')) return;
+      etat = JSON.parse(JSON.stringify(etatVide));
+      localStorage.removeItem(KEY);
+      rendre();
+    });
+
+    /* ------------------------------------------------------------- jeu d'exemple */
+    function jeuExemple() {
+      var l = startOfWeek(new Date());
+      function j(n, h, m) { var d = addDays(l, n); return { date: iso(d), heure: h == null ? '' : pad(h) + ':' + pad(m || 0) }; }
+      var c1 = uid(), c2 = uid(), c3 = uid();
+      var ev = function (n, h, m, titre, dureeMin, cat, lieu) {
+        var q = j(n, h, m);
+        return { id: uid(), titre: titre, date: q.date, heure: q.heure, duree: dureeMin, categorie: cat, lieu: lieu };
+      };
+      var op = function (n, libelle, montant, cat, compte) {
+        return { id: uid(), libelle: libelle, montant: montant, date: iso(addDays(l, n)), categorie: cat, compteId: compte };
+      };
+      return {
+        version: 1,
+        reglages: { objectifSportMin: 240 },
+        mails: [
+          { id: uid(), de: 'CPAM — Service formation', sujet: 'Convention d’alternance à signer', date: iso(addDays(l, 0)), important: true, traite: false },
+          { id: uid(), de: 'CESI Admissions', sujet: 'Dossier Bachelor Administrateur Réseau', date: iso(addDays(l, 1)), important: true, traite: false },
+          { id: uid(), de: 'Lycée — Secrétariat BTS', sujet: 'Planning des épreuves E5', date: iso(addDays(l, 1)), important: false, traite: false },
+          { id: uid(), de: 'OVHcloud', sujet: 'Renouvellement du nom de domaine', date: iso(addDays(l, 2)), important: false, traite: true },
+          { id: uid(), de: 'Salle de sport', sujet: 'Nouveaux créneaux du samedi', date: iso(addDays(l, 3)), important: false, traite: true }
+        ],
+        evenements: [
+          ev(0, 8, 30, 'Cours — Réseaux : routage dynamique', 240, 'cours', 'Lycée'),
+          ev(0, 18, 0, 'Musculation — haut du corps', 75, 'sport', 'Salle'),
+          ev(1, 9, 0, 'Alternance CPAM — supervision Zabbix', 420, 'alternance', 'CPAM'),
+          ev(1, 19, 0, 'Course à pied — 8 km', 45, 'sport', 'Parc'),
+          ev(2, 8, 30, 'Cours — Cybersécurité : durcissement AD', 240, 'cours', 'Lycée'),
+          ev(2, 14, 0, 'Veille IPv6 — rédaction fiche ARCEP', 90, 'perso', ''),
+          ev(3, 9, 0, 'Alternance CPAM — VLAN et segmentation', 420, 'alternance', 'CPAM'),
+          ev(3, 18, 30, 'Musculation — bas du corps', 70, 'sport', 'Salle'),
+          ev(4, 8, 30, 'Cours — Projet SISR : soutenance blanche', 180, 'cours', 'Lycée'),
+          ev(5, 10, 0, 'Natation', 60, 'sport', 'Piscine'),
+          ev(6, 11, 0, 'Mise à jour du portfolio', 120, 'perso', '')
+        ],
+        portefeuille: {
+          comptes: [
+            { id: c1, nom: 'Compte courant', type: 'courant', solde: 842.35 },
+            { id: c2, nom: 'Livret A', type: 'epargne', solde: 3150 },
+            { id: c3, nom: 'Espèces', type: 'especes', solde: 45 }
+          ],
+          operations: [
+            op(0, 'Courses de la semaine', -52.40, 'Courses', c1),
+            op(1, 'Abonnement transport', -31.20, 'Transport', c1),
+            op(1, 'Salle de sport', -29.90, 'Sport', c1),
+            op(2, 'Manuel réseau', -24.90, 'Études', c1),
+            op(3, 'Restaurant midi', -13.50, 'Loisirs', c3),
+            op(4, 'Gratification alternance', 720, 'Revenu', c1),
+            op(5, 'Essence', -40.00, 'Transport', c1)
+          ]
+        },
+        notes: {}
+      };
+    }
+
+    $('btn-demo').addEventListener('click', function () {
+      if (etat.mails.length || etat.evenements.length || etat.portefeuille.comptes.length) {
+        if (!confirm('Remplacer les données actuelles par le jeu d’exemple ?')) return;
+      }
+      etat = jeuExemple();
+      semaine = startOfWeek(new Date());
+      majEtRendre();
+    });
+
+    /* ------------------------------------------------------------------ tooltip */
+    var infobulle = $('tooltip');
+    document.addEventListener('mouseover', function (e) {
+      var cible = e.target.closest('[data-tip]');
+      if (!cible) return;
+      infobulle.textContent = cible.dataset.tip;
+      infobulle.classList.add('is-visible');
+    });
+    document.addEventListener('mousemove', function (e) {
+      if (!infobulle.classList.contains('is-visible')) return;
+      var x = Math.min(e.clientX + 14, window.innerWidth - infobulle.offsetWidth - 8);
+      infobulle.style.left = x + 'px';
+      infobulle.style.top = (e.clientY - infobulle.offsetHeight - 10) + 'px';
+    });
+    document.addEventListener('mouseout', function (e) {
+      if (e.target.closest && e.target.closest('[data-tip]')) infobulle.classList.remove('is-visible');
+    });
+
+    /* --------------------------------------------------------------- démarrage */
+    (function horloge() {
+      var maj = function () {
+        $('clock').textContent = new Date().toLocaleDateString('fr-FR', { weekday: 'long', day: 'numeric', month: 'long' }) +
+          ' · ' + new Date().toLocaleTimeString('fr-FR', { hour: '2-digit', minute: '2-digit' });
+      };
+      maj();
+      setInterval(maj, 30000);
+    })();
+
+    var aujourd = iso(new Date());
+    ['form-event', 'form-ope', 'form-mail'].forEach(function (id) {
+      var champ = $(id).querySelector('input[name="date"]');
+      if (champ && !champ.value) champ.value = aujourd;
+    });
+
+    rendre();
+  })();
+  </script>
+</body>
+</html>
